@@ -1,5 +1,6 @@
 package it.skrahs.niceauth;
 
+import it.skrahs.niceauth.backend.MongoManager;
 import it.skrahs.niceauth.cache.ConfigCache;
 import it.skrahs.niceauth.commands.AuthCommand;
 import it.skrahs.niceauth.commands.ChangepasswordCommand;
@@ -9,17 +10,22 @@ import it.skrahs.niceauth.listener.CommandListener;
 import it.skrahs.niceauth.listener.JoinListener;
 import it.skrahs.niceauth.listener.QuitListener;
 import it.skrahs.niceauth.managers.AuthManager;
+import lombok.Getter;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.List;
+
+@Getter
 public final class NiceAuth extends JavaPlugin {
 
+    @Getter
     private static Plugin instance;
+
     private AuthManager authManager;
 
-    public static Plugin getInstance() {
-        return instance;
-    }
+    private MongoManager mongoManager;
 
     @Override
     public void onEnable() {
@@ -27,16 +33,11 @@ public final class NiceAuth extends JavaPlugin {
         saveDefaultConfig();
         loadCache();
 
-        // Inizializzazione dell'AuthManager
-        authManager = new AuthManager();
+        mongoManager = new MongoManager(this);
+        authManager = new AuthManager(mongoManager.getDatabase());
 
-        getServer().getPluginManager().registerEvents(new JoinListener(this), this);
-        getServer().getPluginManager().registerEvents(new CommandListener(this), this);
-        getServer().getPluginManager().registerEvents(new QuitListener(this), this);
-        getCommand("register").setExecutor(new RegisterCommand(this));
-        getCommand("login").setExecutor(new LoginCommand(this));
-        getCommand("auth").setExecutor(new AuthCommand());
-        getCommand("changepassword").setExecutor(new ChangepasswordCommand(this));
+        loadCommands();
+        loadListeners();
 
         getLogger().info("  _   _ _                        _   _     \n" +
                 "  | \\ | (_)            /\\        | | | |    \n" +
@@ -47,12 +48,30 @@ public final class NiceAuth extends JavaPlugin {
                 "                                           \n" +
                 "  Plugin was started Succesfully           \n" +
                 "  Version: 1.0                             \n" +
-                "  Author: Skrahs                           \n" +
+                "  Author: Skrahs, AyoMattiol (@onEnable)                          \n" +
                 "\n");
+    }
+
+    private void loadCommands() {
+        getCommand("register").setExecutor(new RegisterCommand(this));
+        getCommand("login").setExecutor(new LoginCommand(this));
+        getCommand("auth").setExecutor(new AuthCommand());
+        getCommand("changepassword").setExecutor(new ChangepasswordCommand(this));
+    }
+
+    private void loadListeners() {
+        PluginManager pm = getServer().getPluginManager();
+
+        List.of(
+                new JoinListener(this),
+                new CommandListener(this),
+                new QuitListener(this)
+        ).forEach(listener -> pm.registerEvents(listener, this));
     }
 
     @Override
     public void onDisable() {
+        mongoManager.close();
 
         getLogger().info("  _   _ _                        _   _     \n" +
                 "  | \\ | (_)            /\\        | | | |    \n" +
@@ -63,7 +82,8 @@ public final class NiceAuth extends JavaPlugin {
                 "                                           \n" +
                 "  Plugin was disabled Succesfully           \n" +
                 "  Version: 1.0                             \n" +
-                "  Author: Skrahs                           \n" +
+                "  Author: Skrahs" +
+                "  Fork by: AyoMattiol (@onEnable)                           \n" +
                 "\n");
 
     }
@@ -72,7 +92,4 @@ public final class NiceAuth extends JavaPlugin {
         ConfigCache.load();
     }
 
-    public AuthManager getAuthManager() {
-        return authManager;
-    }
 }

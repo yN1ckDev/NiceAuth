@@ -5,6 +5,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 public class ConfigCache {
 
+    public static String ALREADY_REGISTERED;
     public static String LOGIN_CORRECT_USE, NOT_REGISTERED,WRONG_PASSWORD,LOGIN_SUCCESFUL, WELCOME_LOGIN_MESSAGE, LOGIN_BIG_ERROR, ONLY_LOGIN_PHASE, AFTER_ACCESS;
     public static String REGISTER_CORRECT_USE, REGISTER_SUCCESFUL, REGISTER_BIG_ERROR, REGISTER_KICK_MESSAGE, WELCOME_REGISTER_MESSAGE, ONLY_REGISTRATION_PHASE;
     public static String SECRET_KEY = "qbBQoizDmR/22z7Q2EsS3Q==";
@@ -33,6 +34,7 @@ public class ConfigCache {
         REGISTER_KICK_MESSAGE = config.getString("Register-Kick-Message");
         WELCOME_REGISTER_MESSAGE = config.getString("Welcome-Register-Message");
         ONLY_REGISTRATION_PHASE = config.getString("Only-Register-Phase");
+        ALREADY_REGISTERED = config.getString("Already-Registered");
 
         // Password Section
 

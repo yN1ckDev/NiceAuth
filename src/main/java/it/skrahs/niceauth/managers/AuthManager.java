@@ -1,67 +1,66 @@
 package it.skrahs.niceauth.managers;
 
-import it.skrahs.niceauth.NiceAuth;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
 import org.bukkit.entity.Player;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public class AuthManager {
-    private final List<UUID> registrationInProgressList = new ArrayList<>();
-    private final List<UUID> loginInProgressList = new ArrayList<>();
-    private final File file;
-    private final FileConfiguration passwords;
+    private final MongoCollection<Document> collection;
 
-    public AuthManager() {
-        file = new File(NiceAuth.getInstance().getDataFolder(), "passwords.yml");
-        passwords = YamlConfiguration.loadConfiguration(file);
+    private final Set<UUID> registrationInProgressSet = new HashSet<>();
+    private final Set<UUID> loginInProgressSet = new HashSet<>();
+
+    public AuthManager(MongoDatabase database) {
+        this.collection = database.getCollection("passwords");
     }
 
-    public FileConfiguration getPasswords() {
-        return passwords;
+    public void savePassword(Player player, String password) {
+        Document query = new Document("uuid", player.getUniqueId().toString());
+        Document update = new Document("$set", new Document("password", password));
+        collection.updateOne(query, update, new com.mongodb.client.model.UpdateOptions().upsert(true));
     }
 
-    public void savePasswords() {
-        try {
-            passwords.save(file);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public String getPassword(Player player) {
+        Document query = new Document("uuid", player.getUniqueId().toString());
+        Document result = collection.find(query).first();
+        return result != null ? result.getString("password") : null;
     }
 
     public void setRegistrationInProgress(Player player) {
-        if (registrationInProgressList.contains(player.getUniqueId())) {
-            registrationInProgressList.remove(player.getUniqueId());
+        if (registrationInProgressSet.contains(player.getUniqueId())) {
+            registrationInProgressSet.remove(player.getUniqueId());
         } else {
-            registrationInProgressList.add(player.getUniqueId());
+            registrationInProgressSet.add(player.getUniqueId());
         }
     }
 
     public void setLoginInProgress(Player player) {
-        registrationInProgressList.remove(player.getUniqueId());
-        if (loginInProgressList.contains(player.getUniqueId())) {
-            loginInProgressList.remove(player.getUniqueId());
+        registrationInProgressSet.remove(player.getUniqueId());
+        if (loginInProgressSet.contains(player.getUniqueId())) {
+            loginInProgressSet.remove(player.getUniqueId());
         } else {
-            loginInProgressList.add(player.getUniqueId());
+            loginInProgressSet.add(player.getUniqueId());
         }
     }
 
     public void setLoggedIn(Player player) {
-        loginInProgressList.remove(player.getUniqueId());
+        loginInProgressSet.remove(player.getUniqueId());
     }
 
     public boolean isRegistrationInProgress(Player player) {
-        return registrationInProgressList.contains(player.getUniqueId());
+        return registrationInProgressSet.contains(player.getUniqueId());
     }
 
     public boolean isLoginInProgress(Player player) {
-        return loginInProgressList.contains(player.getUniqueId());
+        return loginInProgressSet.contains(player.getUniqueId());
     }
 
     public boolean isLoggedIn(Player player) {
-        return !loginInProgressList.contains(player.getUniqueId());
+        return !loginInProgressSet.contains(player.getUniqueId());
     }
 }

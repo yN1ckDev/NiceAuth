@@ -15,6 +15,9 @@
 #--------------------------------#
 # !-------   MESSAGES   -------! #
 #--------------------------------#
+mongodb:
+  uri: "mongodb://localhost:27017"
+  database: "niceauth"
 
 Login-Correct-Use: "&cCorrect Use: /login <your-password>"
 Not-Registered: "&eYour account is not registered."
@@ -29,6 +32,7 @@ Register-Succesful: "&aYou have been successfully registered"
 Register-Big-Error: "&cIf you see this error contact the Administration Team"
 Register-Kick-Message: "&cHello!, You have been successfully registered, please return to log in."
 Welcome-Register-Message: "&cWelcome to the server Run /register <your-password> <repeat-your-password> to play!"
+Already-Registered: "&eYour account is already registered."
 Only-Register-Phase: "&cYou can only use the /register command during the registration phase"
 ChangePassw-Correct-Use: "&cCorrect Use: /changepassword <old-password> <new-password>"
 ChangePassw-Success: "&eYou successfully changed your password!"
